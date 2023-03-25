@@ -1,40 +1,39 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { SearchbarStyled } from './Searchbar.styled';
 import { AiOutlineSearch } from 'react-icons/ai';
 
-class Searchbar extends Component {
-  state = {
-    query: '',
+export const Searchbar = ({ onSubmit }) => {
+  // state = {
+  //    query: '',
+  // };
+
+  const [query, setQuery] = useState('');
+
+  const handleChange = ({ target: { value } }) => {
+    //  this.setState({ query: e.target.value });
+    setQuery(value);
   };
 
-  handleChange = e => {
-    this.setState({ query: e.target.value });
-  };
-
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
-    this.props.onSubmit(this.state.query);
+    onSubmit(query);
   };
 
-  render() {
-    return (
-      <SearchbarStyled>
-        <form onSubmit={this.handleSubmit}>
-          <button type="submit">
-            <AiOutlineSearch size="30px" color="black" />
-          </button>
+  return (
+    <SearchbarStyled>
+      <form onSubmit={handleSubmit}>
+        <button type="submit">
+          <AiOutlineSearch size="30px" color="black" />
+        </button>
 
-          <input
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            onChange={this.handleChange}
-          />
-        </form>
-      </SearchbarStyled>
-    );
-  }
-}
-
-export default Searchbar;
+        <input
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          onChange={handleChange}
+        />
+      </form>
+    </SearchbarStyled>
+  );
+};

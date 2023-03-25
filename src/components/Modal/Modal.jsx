@@ -1,10 +1,10 @@
+import { useEffect } from 'react';
 import { Overlay, ModalWindow } from './Modal.styled';
-import { Component } from 'react';
 
-class Modal extends Component {
-  state = {};
+export const Modal = ({ closeModal, src, tags }) => {
+  // state = {};
 
-  componentDidMount() {
+  /* componentDidMount() {
     window.addEventListener('click', this.closeModalByClick);
     window.addEventListener('keydown', this.closeModalByKeydown);
   }
@@ -12,29 +12,35 @@ class Modal extends Component {
   componentWillUnmount() {
     window.removeEventListener('click', this.closeModalByClick);
     window.removeEventListener('keydown', this.closeModalByKeydown);
-  }
+  } */
 
-  closeModalByKeydown = e => {
-    if (e.code === 'Escape') {
-      this.props.closeModal();
+  useEffect(() => {
+    function closeModalByKeydown(e) {
+      if (e.code === 'Escape') {
+        closeModal();
+      }
     }
-  };
 
-  closeModalByClick = e => {
-    if (e.target.nodeName === 'DIV') {
-      this.props.closeModal();
+    function closeModalByClick({ target }) {
+      if (target.nodeName === 'DIV') {
+        closeModal();
+      }
     }
-  };
 
-  render() {
-    return (
-      <Overlay>
-        <ModalWindow>
-          <img src={this.props.src} alt={this.props.tags} />
-        </ModalWindow>
-      </Overlay>
-    );
-  }
-}
+    window.addEventListener('click', closeModalByClick);
+    window.addEventListener('keydown', closeModalByKeydown);
 
-export default Modal;
+    return () => {
+      window.removeEventListener('click', closeModalByClick);
+      window.removeEventListener('keydown', closeModalByKeydown);
+    };
+  }, [closeModal]);
+
+  return (
+    <Overlay>
+      <ModalWindow>
+        <img src={src} alt={tags} />
+      </ModalWindow>
+    </Overlay>
+  );
+};

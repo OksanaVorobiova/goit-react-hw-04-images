@@ -1,7 +1,7 @@
-import { Component } from 'react';
-import Searchbar from 'components/Searchbar/Searchbar';
+import { useState, useEffect } from 'react';
+import { Searchbar } from 'components/Searchbar/Searchbar';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
-import LoadMoreBtn from 'components/Button/Button';
+import { LoadMoreBtn } from 'components/Button/Button';
 import { Loader } from 'components/Loader/Loader';
 import { Container } from './App.styled';
 import { getImages } from 'api/api';
@@ -14,16 +14,45 @@ const STATUS = {
   REJECTED: 'rejected',
 };
 
-class App extends Component {
-  state = {
+export const App = () => {
+  /*state = {
     query: '',
     images: [],
     status: STATUS.IDLE,
     totalHits: 0,
     error: null,
-  };
+  };*/
 
-  componentDidUpdate(prevProps, prevState) {
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [status, setStatus] = useState(STATUS.IDLE);
+  const [totalHits, setTotalHits] = useState(0);
+  //const [error, setError] = useState(null);
+
+  useEffect(() => {
+    getImages(query, 1)
+      .then(res => {
+        const { hits, totalHits } = res.data;
+
+        if (hits.length !== 0) {
+          setImages([...hits]);
+          setStatus(STATUS.RESOLVED);
+          setTotalHits(totalHits);
+
+          Notify.success(`We found ${totalHits} images`);
+        } else {
+          setStatus(STATUS.REJECTED);
+          Notify.failure('There are no images by this query');
+        }
+      })
+      .catch(error => {
+        setStatus(STATUS.REJECTED);
+        //  setError(error);
+        console.log(error.message);
+      });
+  }, [query]);
+
+  /* componentDidUpdate(prevProps, prevState) {
     if (prevState.query !== this.state.query) {
       try {
         getImages(this.state.query, 1).then(res => {
@@ -53,14 +82,15 @@ class App extends Component {
         Notify.failure('There are no images by this query');
       }
     }
-  }
+  }*/
 
-  handleFormSubmit = value => {
-    this.setState({ query: value, status: STATUS.PENDING });
+  const handleFormSubmit = value => {
+    setQuery(value);
+    setStatus(STATUS.PENDING);
   };
 
-  loadMoreImages = page => {
-    try {
+  const loadMoreImages = page => {
+    /* try {
       this.setState({ status: STATUS.PENDING });
       getImages(this.state.query, page)
         .then(res =>
@@ -73,35 +103,41 @@ class App extends Component {
       console.log(error.message);
       this.setState({ error: error.message });
       this.changeStatus(STATUS.REJECTED);
-    }
+    } */
+
+    setStatus(STATUS.PENDING);
+    getImages(query, page)
+      .then(res => {
+        setImages(prev => [...prev, ...res.data.hits]);
+      })
+      .then(setStatus(STATUS.RESOLVED))
+      .catch(error => {
+        setStatus(STATUS.REJECTED);
+        //  setError(error);
+        console.log(error.message);
+      });
   };
 
-  changeStatus = status => {
-    this.setState({ status });
-  };
+  // changeStatus = status => {
+  // this.setState({ status });
+  //};
 
-  render() {
-    const { images, status, totalHits } = this.state;
+  return (
+    <Container>
+      <Searchbar onSubmit={handleFormSubmit} />
+      {status === STATUS.RESOLVED && images.length > 0 && (
+        <ImageGallery images={images} />
+      )}
 
-    return (
-      <Container>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        {status === STATUS.RESOLVED && images.length > 0 && (
-          <ImageGallery images={images} />
-        )}
+      {status === STATUS.RESOLVED && totalHits > images.length && (
+        <LoadMoreBtn page={loadMoreImages} />
+      )}
 
-        {status === STATUS.RESOLVED && totalHits > images.length && (
-          <LoadMoreBtn page={this.loadMoreImages} />
-        )}
+      {status === STATUS.PENDING && <Loader />}
 
-        {status === STATUS.PENDING && <Loader />}
-
-        {totalHits === images.length &&
-          totalHits !== 0 &&
-          Notify.info('That is all we have found')}
-      </Container>
-    );
-  }
-}
-
-export default App;
+      {totalHits === images.length &&
+        totalHits !== 0 &&
+        Notify.info('That is all we have found')}
+    </Container>
+  );
+};
