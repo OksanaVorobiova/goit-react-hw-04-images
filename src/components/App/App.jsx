@@ -30,26 +30,30 @@ export const App = () => {
   //const [error, setError] = useState(null);
 
   useEffect(() => {
-    getImages(query, 1)
-      .then(res => {
-        const { hits, totalHits } = res.data;
+    async function loadImages() {
+      try {
+        const { hits, totalHits } = await getImages(query, 1);
+
+        // const { hits, totalHits } = res.data;
 
         if (hits.length !== 0) {
-          setImages([...hits]);
-          setStatus(STATUS.RESOLVED);
-          setTotalHits(totalHits);
+          await setImages([...hits]);
+          await setStatus(STATUS.RESOLVED);
+          await setTotalHits(totalHits);
 
-          Notify.success(`We found ${totalHits} images`);
+          await Notify.success(`We found ${totalHits} images`);
         } else {
-          setStatus(STATUS.REJECTED);
-          Notify.failure('There are no images by this query');
+          await setStatus(STATUS.REJECTED);
+          await Notify.failure('There are no images by this query');
         }
-      })
-      .catch(error => {
-        setStatus(STATUS.REJECTED);
+      } catch (error) {
+        await setStatus(STATUS.REJECTED);
         //  setError(error);
         console.log(error.message);
-      });
+      }
+    }
+
+    loadImages();
   }, [query]);
 
   /* componentDidUpdate(prevProps, prevState) {
