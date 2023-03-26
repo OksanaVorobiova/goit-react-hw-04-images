@@ -32,22 +32,22 @@ export const App = () => {
   useEffect(() => {
     async function loadImages() {
       try {
-        const { hits, totalHits } = await getImages(query, 1);
+        const res = await getImages(query, 1);
 
-        // const { hits, totalHits } = res.data;
+        const { hits, totalHits } = res.data;
 
         if (hits.length !== 0) {
-          await setImages([...hits]);
-          await setStatus(STATUS.RESOLVED);
-          await setTotalHits(totalHits);
+          setImages([...hits]);
+          setStatus(STATUS.RESOLVED);
+          setTotalHits(totalHits);
 
-          await Notify.success(`We found ${totalHits} images`);
+          Notify.success(`We found ${totalHits} images`);
         } else {
-          await setStatus(STATUS.REJECTED);
-          await Notify.failure('There are no images by this query');
+          setStatus(STATUS.REJECTED);
+          Notify.failure('There are no images by this query');
         }
       } catch (error) {
-        await setStatus(STATUS.REJECTED);
+        setStatus(STATUS.REJECTED);
         //  setError(error);
         console.log(error.message);
       }
